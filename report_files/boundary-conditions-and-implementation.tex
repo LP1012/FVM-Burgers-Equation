@@ -1,0 +1,468 @@
+At this point in the process, the actual setup of the numerical methods can be discussed.
+Because the entire point of numerical methods is to convert a differential equation into a set of much-simpler algebraic equations, a brief discussion on the domain discretization is imperative.
+
+One of the major benefits of the FVM--and the reason why it is implemented in commercial computational fluid dynamics codes--is its enforcement of conservation laws regardless of the geometry.
+This allows for arbitrary, irregular shapes to be used to discretize the domain, an advantage particularly useful when the computational domain is very complicated.\footnote{such as when the domain is generated with help of Computer Aided Disign (CAD)}
+The discretized domain is known as a \textit{mesh}.
+Creating complicated meshes is well-outside the scope of this text, and professionals have worked over the years to develop algorithms to do this~\autocite{mazumderNumericalMethodsPartial2016}.
+For this 1D case, a simple, constant-interval method was selected, where each volume will be the same size.
+
+For now, $\Delta t$ and $\Delta x$ are specified.
+It is clear, then, that $m=L/\Delta x+1$ (total number of volume centers) and $n=T/\Delta t+1$ (total number of time points).
+If a system for $\mathbf{k}_1$ was built using the approximation in \cref{eq:burgers-eq-central-diff}, the equations would be represented as follows:
+\begin{equation}
+    \label{eq:k1-initial-system}
+    \mathbf{k}_1 =
+    \begin{bmatrix}
+        \frac{1}{\Delta x}\left( f_{-1/2}-f_{1/2} \right)+\frac{\nu }{\left( \Delta x \right)^2}\left( u_1-2u_0+u_{-1} \right)\\
+        \frac{1}{\Delta x}\left( f_{1/2}-f_{3/2} \right)+\frac{\nu }{\left( \Delta x \right)^2}\left( u_2-2u_1+u_0 \right)\\
+        \frac{1}{\Delta x}\left( f_{3/2}-f_{5/2} \right)+\frac{\nu }{\left( \Delta x \right)^2}\left( u_3-2u_2+u_1 \right)\\
+        \vdots                                                                                                                             \\
+        \frac{1}{\Delta x}\left( f_{m-5/2}-f_{m-3/2} \right)+\frac{\nu }{\left( \Delta x \right)^2}\left( u_{m-1}-2u_{m-2}+u_{m-3} \right)\\
+        \frac{1}{\Delta x}\left( f_{m-3/2}-f_{m-1/2} \right)+\frac{\nu }{\left( \Delta x \right)^2}\left( u_{m}-2u_{m-1}+u_{m-2} \right)\\
+    \end{bmatrix}
+\end{equation}
+Although \cref{eq:k1-initial-system} is a good start, two values, $u_{-1}$ and $u_{m}$, raise an issue because they are not within the domain of the problem (including their appearances in the flux values).
+Ultimately, it will be the boundary conditions of the system which will determine these values.
+
+Another issue with \cref{eq:k1-initial-system} is that it does not represent a system as we known linear algebra.
+This issue can be fixed by specifying a couple of vectors of values and separating the coefficients.
+\begin{equation}
+    \label{eq:k1-systems}
+    \mathbf{k}_1 = \frac{\nu }{(\Delta x)^2}\begin{bmatrix}
+                                                \cdots &        &        &        &   &    &        \\
+                                                1      & -2     & 1      &        &   &    &        \\
+                                                & \ddots & \ddots & \ddots &   &    &        \\
+                                                &        &        &        & 1 & -2 & 1      \\
+                                                &        &        &        &   &    & \cdots
+    \end{bmatrix}\mathbf{u}^k
+    +\frac{1}{(\Delta x)}\mathbf{f}^k_{-1/2}-\frac{1}{(\Delta x)}\mathbf{f}_{+1/2}^k
+\end{equation}
+where:
+\begin{equation}
+    \label{eq:u_vec-and-f_vec-definition}
+    \mathbf{u}^k = \begin{bmatrix}
+                       u_0^k  \\
+                       u_1^k  \\
+                       u_2^k  \\
+                       \\
+                       \vdots\\\\
+                       u_{m-1}^k
+    \end{bmatrix},\quad
+    \mathbf{f}^k = \begin{bmatrix}
+                       f_0^k  \\
+                       f_1^k  \\
+                       f_2^k  \\
+                       \\
+                       \vdots\\\\
+                       f_{m-1}^k
+    \end{bmatrix}.
+\end{equation}
+These vectors both have a length of $m$, where $m$ is the number of volumes.
+To evaluate the fluxes, \cref{eq:richtmyer-1st-step,eq:richtmyer-2nd-step} are used.
+Because $f\equiv \frac{1}{2}u^2$, all that is needed is to write out systems for $\mathbf{u}_{\pm 1/2}^{k+1/2}$.
+\begin{subequations}
+    \begin{equation}
+        \label{eq:u1/2-system}
+        \mathbf{{u}}_{+1/2}^{k+1/2}=\frac{1}{2}
+        \begin{bmatrix}
+            1 & 1 &   &        &        &   &        \\
+            & 1 & 1 &        &        &   &        \\
+            &   & 1 & 1      &        &   &        \\
+            &   &   & \ddots & \ddots &   &        \\
+            &   &   &        &        & 1 & 1      \\
+            &   &   &        &        &   & \cdots
+        \end{bmatrix}\mathbf{u}^k+\frac{1}{2}\frac{\Delta t}{\Delta x}
+        \begin{bmatrix}
+            1 & -1 &    &        &        &   &        \\
+            & 1  & -1 &        &        &   &        \\
+            &    & 1  & -1     &        &   &        \\
+            &    &    & \ddots & \ddots &   &        \\
+            &    &    &        &        & 1 & -1     \\
+            &    &    &        &        &   & \cdots
+        \end{bmatrix}\mathbf{f}^k
+    \end{equation}
+    \begin{equation}
+        \label{eq:u-1/2-system}
+        \mathbf{{u}}_{-1/2}^{k+1/2}=\frac{1}{2}
+        \begin{bmatrix}
+            \cdots &   &   &   & & & & \\
+            1      & 1 &   &   & & & & \\
+            & 1 & 1 &   & & & & \\
+            &   & 1 & 1 & & & & \\
+            & & & \ddots & \ddots & & \\
+            & & & & & 1 & 1
+
+        \end{bmatrix}\mathbf{u}^k+\frac{1}{2}\frac{\Delta t}{\Delta x}
+        \begin{bmatrix}
+            \cdots &    &    &        &        &    \\
+            1      & -1 &    &        &        &    \\
+            & 1  & -1 &        &        &    \\
+            &    & 1  & -1     &        &    \\
+            &    &    & \ddots & \ddots &    \\
+            &    &    &        & 1      & -1 \\
+
+        \end{bmatrix}\mathbf{f}^k
+    \end{equation}
+\end{subequations}
+The reader may notice that the top and bottom rows of the matrices in \cref{eq:k1-systems,eq:u1/2-system,eq:u-1/2-system} are not filled in.
+This is to emphasize that a system of equations describing a domain outside of the problem statement cannot be created with the current information.
+\Cref{subsec:dirichlet,subsec:neumann,subsec:periodic} discusses what to put in these rows.
+
+\subsection{Dirichlet Boundary Conditions}\label{subsec:dirichlet}
+Dirichlet boundary conditions specify the values of the function on the boundary and complete the problem statement in \cref{sec:problem-statement}:\\~\\
+
+\noindent
+\textit{Find $u$ which solves \cref{eq:burgers-equation} and satisfies the following:
+    \begin{equation}
+        \label{eq:dirichlet-bc-and-ic}
+        \begin{split}
+            &u(0,t)=u_L \\
+            &u(L,t)=u_R\\
+            &u(x,0)=\begin{cases}
+                        u_L, & x<L/2\\
+                        u_R, & x\geq L/2
+            \end{cases}
+        \end{split}
+    \end{equation}
+    for $x\in [0,L]$, $t\in[0,T]$.}\\~\\
+
+Although simple in concept, determining the numerical scheme is more challenging than it may seem.
+Necessarily, the known quantities in $\mathbf{u}^k$ and $\mathbf{f}^k$ must be separated from the unknown.
+\Cref{sec:matrix-vector-multiply} provides details on the necessary linear algebra.
+Once separated, \cref{eq:k1-systems} now reads as follows:
+\begin{equation}
+    \label{eq:final-k1Dirichlet-system}
+    \begin{split}
+        \mathbf{k}_1=\frac{1}{\Delta x}\left( \left( \mathbf{f}^*\right)^k_{-1/2}-\left( \mathbf{f}^*\right)^k_{1/2} \right)+\frac{\nu }{\left( \Delta x \right)^2}
+        \begin{bmatrix}
+            u_L    \\
+            0      \\
+            \vdots \\
+            0      \\
+            u_R
+        \end{bmatrix}
+        +\frac{\nu }{\left( \Delta x \right)^2}
+        \begin{bmatrix}
+            -2 & 1 & & & & & \\
+            1 & -2 & 1 & & & & \\
+            & \ddots & \ddots & \ddots & & & \\
+            & & & & 1 & -2 & 1 \\
+            & & & & & & 1 & -2
+        \end{bmatrix}\left( \mathbf{u}^* \right)^k
+    \end{split}
+\end{equation}
+where:
+\begin{equation}
+    \label{eq:u_vec_star-and-f_vec_star-definition}
+    \left(\mathbf{u}^*\right)^k = \begin{bmatrix}
+                                      u_1^k  \\
+                                      u_2^k  \\
+                                      u_3^k  \\
+                                      \\
+                                      \vdots\\\\
+                                      u_{m-2}^k
+    \end{bmatrix},\quad
+    \left(\mathbf{f}^*\right)^k = \begin{bmatrix}
+                                      f_1^k  \\
+                                      f_2^k  \\
+                                      f_3^k  \\
+                                      \\
+                                      \vdots\\\\
+                                      f_{m-2}^k
+    \end{bmatrix}
+\end{equation}
+The fluxes are calculated using \cref{eq:u1/2-system,eq:u-1/2-system}:
+\begin{subequations}
+    \begin{equation}
+        \label{eq:dirichlet_plus_flux}
+        \begin{split}
+            \mathbf{{u}}_{+1/2}^{k+1/2}&=\frac{1}{2}
+            \begin{bmatrix}
+                1 & 1 &   &        &        &   &   \\
+                & 1 & 1 &        &        &   &   \\
+                &   & 1 & 1      &        &   &   \\
+                &   &   & \ddots & \ddots &   &   \\
+                &   &   &        &        & 1 & 1 \\
+                &   &   &        &        &   & 1
+            \end{bmatrix}\left( \mathbf{u}^* \right)^k+
+            \begin{bmatrix}
+                0      \\
+                0      \\
+                \vdots \\
+                0      \\
+                u_R
+            \end{bmatrix}+\\
+            &+\frac{1}{2}\frac{\Delta t}{\Delta x}
+            \begin{bmatrix}
+                1 & -1 &    &        &        &   &        \\
+                & 1  & -1 &        &        &   &        \\
+                &    & 1  & -1     &        &   &        \\
+                &    &    & \ddots & \ddots &   &        \\
+                &    &    &        &        & 1 & -1     \\
+                &    &    &        &        &   & \cdots
+            \end{bmatrix}\left( \mathbf{f}^* \right)^k+
+            \frac{1}{2}\frac{\Delta t}{\Delta x}
+            \begin{bmatrix}
+                0      \\
+                0      \\
+                \vdots \\
+                0      \\
+                -f_R
+            \end{bmatrix}
+        \end{split}
+    \end{equation}
+    \begin{equation}
+        \label{eq:dirichlet_minus_flux}
+        \begin{split}
+            \mathbf{u}_{-1/2}^{k+1/2}&=\frac{1}{2}
+            \begin{bmatrix}
+                1 &   &        &        & &   &   \\
+                1 & 1 &        &        & &   &   \\
+                & 1 & 1      &        & &   &   \\
+                &   & \ddots & \ddots & &   &   \\
+                &   &        &        & & 1 & 1 \\
+                &   &        &        & &   & 1
+            \end{bmatrix}\left( \mathbf{u}^* \right)^k+\frac{1}{2}
+            \begin{bmatrix}
+                u_L    \\
+                0      \\
+                \vdots \\
+                0      \\
+                0
+            \end{bmatrix}+\\
+            &+\frac{1}{2}\frac{\Delta t}{\Delta x}
+            \begin{bmatrix}
+                -1 &    &        &        & &   &    \\
+                1  & -1 &        &        & &   &    \\
+                & 1  & -1     &        & &   &    \\
+                &    & \ddots & \ddots & &   &    \\
+                &    &        &        & & 1 & -1 \\
+                &    &        &        & &   & 1
+            \end{bmatrix}\left( \mathbf{f}^* \right)^k+\frac{1}{2}\frac{\Delta t}{\Delta x}
+            \begin{bmatrix}
+                f_L    \\
+                0      \\
+                \vdots \\
+                0      \\
+                0
+            \end{bmatrix}
+        \end{split}
+    \end{equation}
+\end{subequations}
+Note that the lengths of $\left(\mathbf{u}^*\right)^k$ and $\left(\mathbf{f}^*\right)^k$ are both $m-2$, where $m$ is the number of volumes.
+
+\subsection{Neumann Boundary Conditions}\label{subsec:neumann}
+Another case is where we specify not the values of the function, but the function's derivative at the boundary.
+For this paper, an approach is presented for satisfying inhomogeneous Neumann boundary conditions; that is, the derivatives at the boundaries are set to a value other than 0.
+The problem becomes:\\~\\
+
+\noindent
+\textit{Find $u$ which solves \cref{eq:burgers-equation} and satisfies:
+    \begin{equation}
+        \label{eq:neumann-bc-and-ic}
+        \begin{split}
+            \pdv{u}{x}\eval_0&=\alpha\\
+            \pdv{u}{x}\eval_L&=\beta \\
+            u(x,0)&=\begin{cases}
+                        u_L, & x<L/2\\
+                        u_R, & x\geq L/2
+            \end{cases}
+        \end{split}
+    \end{equation}
+    for $x\in [0,L]$, $t\in[0,T]$.}
+
+At this point, the above condition does not directly help solve \cref{eq:u-averaged-burgers} because the goal is to solve for the \textit{function}, not its derivative.
+However, finite differencing techniques, can be used to put the derivative in terms of the function.
+In particular, the central differencing technique can be used to achieve second-order accuracy~\autocite{yewNumericalDifferentiationFinite2011a}.
+\begin{equation}
+    \label{eq:central-differencing}
+    \dv{u}{x}= \frac{u_{i+1}-u_{i-1}}{2(\Delta x)}+\order{(\Delta x)^2}
+\end{equation}
+To get the derivative at $i=[0,m-1]$, basic algebra is used to find:
+\begin{equation}
+    \label{eq:central-diff-results}
+    \begin{alignedat}{4}
+        &\dv{u}{x}\eval_0=\alpha\approx \frac{u_1-u_{-1}}{2(\Delta x)}\quad&\Rightarrow \quad &u_{-1}\approx u_1-2\alpha(\Delta x)\\[10pt]
+        &\dv{u}{x}\eval_L=\beta\approx \frac{u_m-u_{m-2}}{2(\Delta x)}\quad&\Rightarrow \quad &u_m\approx u_{m-2}+2\beta (\Delta x)
+    \end{alignedat}
+\end{equation}
+For the boundary equations at $i=[0,m-1]$, \cref{eq:central-diff-results} is plugged in to the first and last lines of \cref{eq:k1-initial-system} to get the following:
+\begin{equation}
+    \label{eq:neumann-boundary-equations}
+    \begin{split}
+        k_1^{i=0} &= \frac{\nu }{(\Delta x)^2}\left( 2u_1-2u_0 \right)-\frac{2\nu \alpha }{\Delta x}\\[10pt]
+        k_1^{i=m-1} &= \frac{\nu }{(\Delta x)^2}\left( 2u_{m-2}-2u_{m-1} \right)+\frac{2\nu \beta }{\Delta x}\\
+    \end{split}
+\end{equation}
+Applying this to \cref{eq:k1-systems} gives:
+\begin{equation}
+    \label{eq:final-neumann-system}
+    \mathbf{k}_1 = \frac{\nu }{(\Delta x)^2}\begin{bmatrix}
+                                                -2 & 2      &        &        &   &    &    \\
+                                                1  & -2     & 1      &        &   &    &    \\
+                                                & \ddots & \ddots & \ddots &   &    &    \\
+                                                &        &        &        & 1 & -2 & 1  \\
+                                                &        &        &        &   & 2  & -2
+    \end{bmatrix}\mathbf{u}^k+\frac{1}{\Delta x}\mathbf{f}_{-1/2}^k-\frac{1}{\Delta x}\mathbf{f}_{+1/2}^k+
+    \frac{2\nu }{\Delta x}\begin{bmatrix}
+                              -\alpha \\
+                              0       \\
+                              \vdots  \\
+                              0       \\
+                              \beta
+    \end{bmatrix}
+\end{equation}
+In a similar process as \cref{subsec:dirichlet}, the half-step values for the Lax--Wendroff fluxes are derived using \cref{eq:u1/2-system,eq:u-1/2-system}:
+\begin{subequations}
+    \begin{equation}
+        \label{eq:neumann_plus_flux}
+        \begin{split}
+            \mathbf{{u}}_{+1/2}^{k+1/2}&=\frac{1}{2}
+            \begin{bmatrix}
+                1 & 1 &   &        &        &   &   \\
+                & 1 & 1 &        &        &   &   \\
+                &   & 1 & 1      &        &   &   \\
+                &   &   & \ddots & \ddots &   &   \\
+                &   &   &        &        & 1 & 1 \\
+                &   &   &        &        & 1 & 1
+            \end{bmatrix}\mathbf{u}^k+
+            \frac{1}{2}\frac{\Delta t}{\Delta x}
+            \begin{bmatrix}
+                1 & -1 &    &        &        &    &    \\
+                & 1  & -1 &        &        &    &    \\
+                &    & 1  & -1     &        &    &    \\
+                &    &    & \ddots & \ddots &    &    \\
+                &    &    &        &        & 1  & -1 \\
+                &    &    &        &        & -1 & 1
+            \end{bmatrix}\mathbf{f}^k+\\\\
+            &+\beta(\Delta x)\left( 1-\Delta t \beta \right)
+            \begin{bmatrix}
+                0      \\
+                0      \\
+                \vdots \\
+                0      \\
+                1
+            \end{bmatrix}-\beta (\Delta t)u_{m-2}^k
+            \begin{bmatrix}
+                0      \\
+                \vdots \\
+                0      \\
+                1      \\
+                0
+            \end{bmatrix}
+        \end{split}
+    \end{equation}
+    \begin{equation}
+        \label{eq:neumann_minus_flux}
+        \begin{split}
+            \mathbf{u}_{-1/2}^{k+1/2}&=\frac{1}{2}
+            \begin{bmatrix}
+                1 & 1 &        &        & &   &   \\
+                1 & 1 &        &        & &   &   \\
+                & 1 & 1      &        & &   &   \\
+                &   & \ddots & \ddots & &   &   \\
+                &   &        &        & & 1 & 1
+            \end{bmatrix}\mathbf{u}^k
+            +\frac{1}{2}\frac{\Delta t}{\Delta x}
+            \begin{bmatrix}
+                -1 & 1  &        &        & &   &    \\
+                1  & -1 &        &        & &   &    \\
+                & 1  & -1     &        & &   &    \\
+                &    & \ddots & \ddots & &   &    \\
+                &    &        &        & & 1 & -1
+            \end{bmatrix}\mathbf{f}^k+\\\\
+            &+\alpha(\Delta x)\left( \Delta t \alpha-1 \right)
+            \begin{bmatrix}
+                1      \\
+                0      \\
+                0      \\
+                \vdots \\
+                0
+            \end{bmatrix}-\alpha (\Delta t)u_{1}^k
+            \begin{bmatrix}
+                0      \\
+                1      \\
+                0      \\
+                \vdots \\
+                0
+            \end{bmatrix}
+        \end{split}
+    \end{equation}
+\end{subequations}
+
+\subsection{Periodic Boundary Conditions}\label{subsec:periodic}
+Taking advantage of repeating patterns is often helpful when dealing with complicated geometries.
+This is accomplished by demanding \textit{periodic} boundary conditions, which say that what comes through the domain will be repeated.
+The problem statement thus becomes:\\~\\
+
+\noindent
+\textit{Find $u$ which solves \cref{eq:burgers-equation} and satisfies:
+    \begin{equation}
+        \label{eq:periodic-problem-statement}
+        \begin{split}
+            &u(0_-,t)=u(L,t)\\
+            &u(L_+,t)=u(0,t)\\
+            &u(x,0)=\begin{cases}
+                        u_L, & x<L/2\\
+                        u_R, & x\geq L/2
+            \end{cases}
+        \end{split}
+    \end{equation}
+    for $x\in [0,L]$, $t\in[0,T]$.}
+
+In numerical terms, this means $u_{-1}=u_{m-1}$ and $u_m=u_0$, closing the system, which is now represented as:
+\begin{equation}
+    \label{eq:final-periodic}
+    \mathbf{k}_1 = \frac{\nu }{(\Delta x)^2}\begin{bmatrix}
+                                                -2 & 1      &        &        &   &    & 1  \\
+                                                1  & -2     & 1      &        &   &    &    \\
+                                                & \ddots & \ddots & \ddots &   &    &    \\
+                                                &        &        &        & 1 & -2 & 1  \\
+                                                1  &        &        &        &   & 1  & -2
+    \end{bmatrix}\mathbf{u}^k
+    +\frac{1}{\Delta x}\mathbf{f}_{-1/2}^k-\frac{1}{\Delta x}\mathbf{f}_{+1/2}^k
+\end{equation}
+This case is easier to implement than the prior cases, and the half-step flux inputs are calculated in a more straightforward manner:
+\begin{subequations}
+    \begin{equation}
+        \label{eq:periodic1/2u_plus}
+        \mathbf{{u}}_{+1/2}^{k+1/2}=\frac{1}{2}
+        \begin{bmatrix}
+            1 & 1 &   &        &        &   &   \\
+            & 1 & 1 &        &        &   &   \\
+            &   & 1 & 1      &        &   &   \\
+            &   &   & \ddots & \ddots &   &   \\
+            &   &   &        &        & 1 & 1 \\
+            1 &   &   &        &        &   & 1
+        \end{bmatrix}\mathbf{u}^k+
+        \frac{1}{2}\frac{\Delta t}{\Delta x}
+        \begin{bmatrix}
+            1  & -1 &    &        &        &   &    \\
+            & 1  & -1 &        &        &   &    \\
+            &    & 1  & -1     &        &   &    \\
+            &    &    & \ddots & \ddots &   &    \\
+            &    &    &        &        & 1 & -1 \\
+            -1 &    &    &        &        &   & 1
+        \end{bmatrix}\mathbf{f}^k
+    \end{equation}
+    \begin{equation}
+        \label{eq:periodic1/2u_minus}
+        \mathbf{u}_{-1/2}^{k+1/2}=\frac{1}{2}
+        \begin{bmatrix}
+            1 &   &        &        & &   & 1 \\
+            1 & 1 &        &        & &   &   \\
+            & 1 & 1      &        & &   &   \\
+            &   & \ddots & \ddots & &   &   \\
+            &   &        &        & & 1 & 1
+        \end{bmatrix}\mathbf{u}^k
+        +\frac{1}{2}\frac{\Delta t}{\Delta x}
+        \begin{bmatrix}
+            -1 &    &        &        & &   & 1  \\
+            1  & -1 &        &        & &   &    \\
+            & 1  & -1     &        & &   &    \\
+            &    & \ddots & \ddots & &   &    \\
+            &    &        &        & & 1 & -1
+        \end{bmatrix}\mathbf{f}^k
+    \end{equation}
+\end{subequations}

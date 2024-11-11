@@ -1,0 +1,454 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% File: ornl-template-example.tex
+% Authors: Seth R Johnson, *Sam Crawford, and John Batson
+% *Corresponding author, crawfordst.@ornl.gov
+% Date: Monday April 29 13:41:46 2024
+%
+% Example of ORNL report template
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Select the appropriate option for a TM [tm], SPR [spr], or LTR [ltr] report.
+%\documentclass[tm]{ornltm} % Use for TM report.
+%\documentclass[spr]{ornltm} % Use for SPR report.
+\documentclass[ltr]{ornltm} % Use for LTR report.
+
+%% Add ``draft'' option to compile more quickly. This option suppresses images links.
+%\documentclass[draft,tm]{ornltm} % Use for a TM report in draft mode.
+
+
+%% Uncomment these to hide a particular page.
+%\renewcommand\makeostipage\relax
+%\renewcommand\makecoverpage\relax
+%\renewcommand\maketitlepage\relax
+
+%% Optional packages that are simply part of this example document
+\usepackage{threeparttable} % Table with captions and tablenotes
+\usepackage{booktabs} % Toprule, midrule, bottomrule
+\usepackage{multirow} % Extend table entries over multiple rows
+\usepackage{pdflscape} % Allows landscape pages for wide figures and tables
+
+%% Bibliography styling. WARNING: the biblatex-chicago package removes the
+%% footnote rule.
+\usepackage[authordate,autocite=inline,backend=biber, natbib]{biblatex-chicago}
+%\usepackage{biblatex} % Numerical style
+
+\bibliography{burgers_equation}% Replace with your bib filename.
+
+%% User-specified packages
+\usepackage{mathtools}
+\usepackage{amsfonts}
+\usepackage{setspace}
+\usepackage{listings}
+\usepackage{subcaption}
+\usepackage{pdfpages}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{authblk} % Best check on this one...
+\usepackage{url}
+\usepackage{wrapfig}
+\usepackage{physics}
+\usepackage[tight]{units}
+\usepackage{sectsty}
+\usepackage[noabbrev, capitalize]{cleveref}
+\usepackage{lipsum}
+\usepackage{esint}
+
+\numberwithin{equation}{section}
+
+%% Use inline small italic blue for comments rather than placing them in the
+%% margin.
+\definecolor{note}{RGB}{48,96,192}
+\renewcommand{\marginpar}[1]{{\small\em\color{note}[#1]}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AUTHORSHIP & PUBLISHING
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% AUTHOR'S LIST
+%% Note: multiple authors are separated with the \and command. 
+%% Per ORNL guidance, please keep the number of authors at six or fewer.
+
+\author{Liam M. Pohlmann\affilnum{1}}
+
+%%% AUTHOR's LIST WITH AFFILIATIONS (SPR ONLY)
+%% Define authors with affiliations. Does not apply to TM or LTR. Comment out if not using.
+%% Note: multiple authors are separated with the \and command. 
+%% Per ORNL guidance, please keep the number of authors at six or fewer.
+
+%\author{First Author \and Second Author\affilnum{1} \and Third Author\affilnum{2} \and Fourth Author \and Fifth Author \and Sixth Author}
+
+%%% AFFILIATIONS (SPR ONLY)
+%% Note: Does not apply to TM or LTR.
+
+\affiliation{%
+	\affilnum{1}Oak Ridge National Laboratory \\
+	\affilnum{2}University of New Mexico
+}
+
+%%% DOCUMENT TITLE
+%% Note: if using an explicit line break in the title, you must use the \protect
+%% command before it.
+
+\title{Solution of Burgers' Equation Using the Finite Volume Method and Runge-Kutta 4 Time-Stepping Under Various Boundary Conditions}
+
+%%% PUBLICATION DATE
+%% Specify date or use current month and year with \today command.
+
+%\date{April 2024}
+\date{\today}
+
+%%% REPORT NUMBER
+%% Note: This number must match number provided by RESolution.
+
+\reportnum{ORNL/XX-XXXX/XXX} % Replace first XX with TM, SPR, or LTR.
+
+%%% DIVISION NAME
+%% Define division/directorate name. Replace ``Division Name'' with your
+%% division/directorate.
+
+\division{Nuclear Energy and Fuel Cycle Division}
+
+%%% SPONSOR OPTIONS FOR SPR
+%% Leave commented out or remove for TM and LTR.
+
+%%% SPONSOR NUMBER
+%% SPR only. Comment out if not using.
+
+%\sponsornum{Sponsor No. (if needed)}
+
+%%% SPONSOR LOGO(s)
+%% SPR only. Add sponsor logos by listing file names below. The cover can accommodate two sponsor logos.
+
+%\SponsorLogoOne{luggage/logo-placeholder.jpg} % Sponsor logo one. Comment out if not using.
+%\SponsorLogoTwo{luggage/logo-placeholder.jpg} % Sponsor logo two. Comment out if not using.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DOCUMENT RESTRICTIONS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% DRAFT
+%% Mark the report as a draft. Comment out for public release 
+%% and unlimited distribution.
+
+\reportdraft
+
+%%% GENERAL RESTRICTIONS
+%% Add a restriction notice to the cover page and headers/footers.
+%% Select option by removing the % that precedes it.
+
+%\restrict{UT-BATTELLE BUSINESS SENSITIVE}
+%\restrict{UT-BATTELLE BUSINESS PERSONAL}
+%\restrict{UT-BATTELLE INTERNAL USE ONLY}
+%\restrict{Not for public release.}
+%\restrict{UNCLASSIFIED CONTROLLED NUCLEAR INFORMATION}
+
+%%% CRADA
+%% Add CRADA notice to front cover. Draft or public release are determined
+%% by toggling \reportdraft (above).
+
+%\crada{CRADA number NFE-XX-XXXXX}
+
+%%% CUI
+%% Add a CUI notice to the header and footer. Use % to toggle on or off. 
+%% Note: CUI supercedes restrict. If both are enabled, only CUI will print.
+%% Update with appropriate category and designating authority for your document.
+
+%\cui{CUI//CATEGORY/SUBCATEGORY//DISSEM} % Replace with appropriate markings.
+%\cuiDA{Authority Name, ORNL} % Define the CUI designating authority. Can be organization, individual, or both.
+%\cuiPh{(XXX)~XXX-XXXX} % Define phone number for designated authority.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ABBREVIATIONS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Uses the Acro package called in CLS and styled in the STY. Note that acronyms
+%% that aren't used in the document won't be printed in the list.
+
+%\DeclareAcronym{doe}{
+%	short = DOE ,
+%	long = US Department of Energy
+%	 }
+%
+%\DeclareAcronym{ornl}{
+%	short = ORNL ,
+%	long = Oak Ridge National Laboratory
+%}
+%\declareAcronym{cfd}{
+%    short=CFD ,
+%    long = Computational Fluid Dynamics
+%}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FRONT MATTER
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+	\frontmatter
+
+	\tableofcontents
+%% LIST OF FIGURES: optional if fewer than 5 are used
+	\listoffigures
+
+%%% LIST OF TABLES: optional if fewer than 5 are used
+%\listoftables
+%
+%%% Print LIST OF ABBREVIATIONS (optional)
+%\printacronyms
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% ADDITIONAL FRONT MATTER (OPTIONAL)
+	\section*{Foreword}
+	This research was supported in part by an appointment to the Oak Ridge National Laboratory Research Student Internships Program, sponsored by the US Department of Energy and administered by the Oak Ridge Institute for Science and Education.
+	The author would also like to thank Drs. Vineet Kumar, Vivek Rao, and Arpan Sircar for their support of this project through its lifetime.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ABSTRACT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\mainmatter
+%\begin{abstract}
+%
+%The abstract, if short, is inserted here (after \verb|\mainmatter|) before the
+%introduction section. If the abstract is long, then it should be inserted
+%\emph{before} \verb|\mainmatter|, and the introduction below will be the first
+%entry on the page. This \acl{tm} class is used for reports at \acl{ornl}.
+%
+%\end{abstract}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DOCUMENT CONTENT
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\acresetall % Reset abbreviations for narrative.
+
+
+	\section{Problem Statement} \label{sec:problem-statement}
+	Burgers' equation is a 1D partial differential equation (PDE) developed as a model to understand fluid flow.
+	This equation specifically enables the exploration of shocks and rarefactions in fluids, which are discontinuous solutions.
+	It is given as~\autocite{salihBurgersEquation2016}:
+	\begin{equation}
+		\label{eq:burgers-equation}
+		\pdv{u}{t} + u\pdv{u}{x} = \nu \pdv[2]{u}{x}
+	\end{equation}
+	or, using different notation:
+	\begin{equation}
+		\label{eq:alternate-burgers-equation}
+		u_t + uu_x=\nu u_{xx}
+	\end{equation}
+	\Cref{eq:burgers-equation}'s terms are physically understood as:
+	\begin{equation*}
+		\begin{split}
+			\pdv{u}{t}&=\text{Time-dependent term}\\
+			u\pdv{u}{x}&=\text{Advection term}\\
+			\nu \pdv[2]{u}{x}&=\text{Diffusion term}
+		\end{split}
+	\end{equation*}
+	For this paper, we choose the initial conditions to be a piecewise-defined step function:
+	\begin{equation}
+		\label{eq:initial-condition}
+		u(x,0)=\begin{cases}
+				   u_L, & x<L/2\\
+				   u_R, & x\geq L/2
+		\end{cases}
+	\end{equation}
+	in the domain $x\in [0,L]$, $t\in[0,T]$.
+	To close the system, the following three boundary conditions will be considered:
+	\begin{enumerate}
+		\item Inhomogeneous Dirichlet
+		\item Inhomogeneous Neumann
+		\item Periodic
+	\end{enumerate}
+	These are discussed in further detail in \cref{subsec:dirichlet,subsec:neumann,subsec:periodic}.
+
+
+	\section{Finite Volume Method}\label{sec:finite-volume-method}
+	\input{finite-volume-method}
+
+
+	\section{Numerical Flux Selection} \label{sec:numerical-flux-selection}
+	The numerical fluxes in \cref{eq:burgers-eq-central-diff} are not able to be numerically solved in their current form.
+	These fluxes must be written in terms of volume centers (i.e., in terms of integer values of $i$, not $i\pm 1/2$).
+
+	A flux scheme that not only captures the data accurately but also prevents the nonlinear terms from blowing up completely must be selected.
+	The following flux schemes may be of interest:
+	\begin{enumerate}
+		\item Upwind
+		\item Lax--Friedrichs
+		\item Lax--Wendroff
+		\item Godunov
+	\end{enumerate}
+	Analyses and explanations of the above schemes would require a significant divergence from the goal of this paper, so the reader is referred to other resources such as~\autocite{alma992854184708136} for more information.
+
+	Because of its second-order accuracy and reduced dissipative properties, the Lax--Wendroff flux scheme was selected.
+	The Lax--Wendroff method is not unique for a nonlinear PDE like it is for a linear PDE~\autocite{LaxWendroffMethodEncyclopedia}.
+	One particular method was given by Richtmyer.
+	In this method, the flux is evaluated in two steps, given as the following:
+	\begin{subequations}
+		\begin{equation}
+			\label{eq:richtmyer-1st-step}
+			u_{i+1/2}^{k+1/2}=\frac{1}{2}\left( u_i^k+u_{i+1}^k \right)+\frac{1}{2}\frac{\Delta t}{\Delta x}\left( f_i^k-f_{i+1}^k \right)
+		\end{equation}
+		\begin{equation}
+			\label{eq:richtmyer-2nd-step}
+			f_{i+1/2}=f\left( u_{i+1/2}^{k+1/2} \right)
+		\end{equation}
+	\end{subequations}
+	The fluxes are now able to be evaluated, all that is left is to discretize the time derivative and assemble the volumes into a system of equations.
+
+
+	\section{Time Discretization} \label{sec:time-discretization}
+	There are many methods derived by mathematicians that could be implemented to approximate our time derivative.
+	An obvious case might be to approximate with forward differencing (also known as the Forward Euler method), although this method suffers greatly from instability and only first-order accuracy.
+	Another option is backward differencing (also known as the Backward Euler method), which solves the issue of stability because of its implicit nature; unfortunately, this method suffers from first-order accuracy.
+	This stability, however, is at the cost of inverting a system.
+	Due to the nonlinear nature of \cref{eq:burgers-equation}, solving each time step would require root-finding algorithms, such as Newton--Raphson, as opposed to standard linear solvers such as LU factorization, which adds a significant layer of computational complexity.
+
+	To handle time-stepping, the tried-and-true Runge-Kutta methods are used instead.
+	These methods handle time stepping in a Forward Euler-like method, in which the derivatives are approximated with a weighted sum.
+	These methods take the following form:
+	\begin{equation}
+		\label{eq:general-rk-method}
+		u^{k+1}=u^k+m^* \times (\Delta t)
+	\end{equation}
+	where $\Delta t$ is the size of a single time step.
+	In particular, the Runge-Kutta 4 (RK4) method is implemented.
+	For some differential equation $\dv{u}{t}=g(u(t),t)$, given $u(t_k)=u^k$ and $t_k=t_0+k\times(\Delta t)$ for $k\in[0,n]$ time steps~\autocite{FourthOrderRungeKutta}:
+	\begin{equation}
+		\label{eq:rk4}
+		\begin{split}
+			k_1&=g\left( u^k,t_k \right)\\
+			k_2&=g\left( u^k+k_1\frac{\Delta t}{2},t_k+\frac{\Delta t}{2} \right)\\
+			k_3&=g\left( u^k+k_2\frac{\Delta t}{2},t_k+\frac{\Delta t}{2} \right)\\
+			k_4 &= g\left( u^k+k_3 \Delta t,t_k+\Delta t \right)\\ \\
+			u^{k+1}&=u^k+\frac{k_1+2k_2+2k_3+k_4}{6}\times(\Delta t)
+		\end{split}
+	\end{equation}
+	In this case, $m^* = \frac{k_1+2k_2+2k_3+k_4}{6}$.
+	The RK4 method is $\order{(\Delta t)^4}$ globally~\autocite{FourthOrderRungeKutta}, meaning the accuracy is significantly more likely to be restricted by spacial discretization rather than temporal discretization.
+	Note that in applying \cref{eq:rk4} to \cref{eq:burgers-equation}, the values $u^{k+1}$,$u^k$,and $k_{1,2,3,4}$ are all vectors.
+	These vectors contain the function values at each point in space at a particular time and will be denoted with bold font going forward.
+
+	To implement \cref{eq:rk4}, simply let $g(u^k,t_k)$ equal \cref{eq:burgers-eq-central-diff}, solve for the flux terms, $\mathbf{k_1},\mathbf{k_2},\mathbf{k_3},\mathbf{k_4}$, calculate $\mathbf{m^*}$, and take a timestep.
+
+
+	\section{Boundary Conditions and Implementation}\label{sec:boundary-conditions-and-implementation}
+	\input{boundary-conditions-and-implementation}
+
+
+	\section{Results}\label{sec:results}
+	\input{results}
+	\clearpage
+
+
+	\section{Conclusion and Next Steps}\label{sec:conclusion}
+	For any who have been able to run the included code above $\nu=0.01$, you will notice that the solution rapidly diverges at the interface of the two velocities in the initial condition.
+	Though it is not immediately clear what the cause of this instability is, the next steps will likely include explorations of higher-resolution spatial and flux schemes.
+	A finer mesh may also greatly improve the quality of the solution, though this will be difficult to achieve without the aid of parallel computing to handle the large matrix-vector products.
+	Finally, a conversion from an explicit time-stepping method (RK4) to an implicit method may also improve stability properties.
+	As can be shown in the literature~\autocite{cameronNOTESBURGERSEQUATION,salihBurgersEquation2016}, the discontinuity present in the solution is a known computational difficulty, and its study will help greatly in understanding more complex equations such as the Navier-Stokes, which also have nonlinearities.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% REFERENCES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Bibliography support via biblatex
+
+
+	\section{REFERENCES}% Create heading for references to include in ToC.
+	\printbibliography[heading=none]% Print references without biblatex's heading.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% APPENDICES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\appendix
+	\acresetall % Reset abbreviations for Appendices.
+
+
+	\section{Splitting a Matrix-Vector Multiply} \label{sec:matrix-vector-multiply}
+	Say we have a system $A\mathbf{x}=\mathbf{b}$, and we simply want to evaluate the left-hand-side to verify the result.
+	If $A$ is $3\times 3$ where:
+	\begin{equation}
+		\label{eq:a-matrix}
+		A = \begin{bmatrix}
+				a & b & c \\
+				d & e & f \\
+				g & h & i \\
+		\end{bmatrix}
+	\end{equation}
+	and:
+	\begin{equation}
+		\label{eq:x_vec}
+		\mathbf{x} =
+		\begin{bmatrix}
+			x_1 \\
+			x_2 \\
+			x_3
+		\end{bmatrix},
+	\end{equation}
+	then their product is:
+	\begin{equation}
+		\label{eq:ax-product}
+		\begin{bmatrix}
+			a & b & c \\
+			d & e & f \\
+			g & h & i \\
+		\end{bmatrix}
+		\begin{bmatrix}
+			x_1 \\
+			x_2 \\
+			x_3
+		\end{bmatrix}=
+		\begin{bmatrix}
+			ax_1+bx_2+cx_3 \\
+			dx_1+ex_2+fx_3 \\
+			gx_1+hx_2+ix_3
+		\end{bmatrix}
+	\end{equation}
+	which can also be expressed as:
+	\begin{equation}
+		\label{eq:matrix-expansion}
+		\begin{split}
+			\begin{bmatrix}
+				ax_1+bx_2+cx_3 \\
+				dx_1+ex_2+fx_3 \\
+				gx_1+hx_2+ix_3
+			\end{bmatrix}
+			&=
+			\begin{bmatrix}
+				ax_1 \\
+				bx_1 \\
+				cx_1
+			\end{bmatrix}+\begin{bmatrix}
+							  bx_2+cx_3 \\
+							  ex_2+fx_3 \\
+							  hx_2+ix_3
+			\end{bmatrix}\\
+			&=
+			\begin{bmatrix}
+				a \\
+				b \\
+				c
+			\end{bmatrix}x_1 +
+			\begin{bmatrix}
+				b & c \\
+				e & f \\
+				h & i
+			\end{bmatrix}\begin{bmatrix}
+							 x_2 \\
+							 x_3
+			\end{bmatrix}
+		\end{split}.
+	\end{equation}
+	The above is particularly useful when a value is known, such as in the case of Dirichlet boundary conditions for a PDE.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Back cover page
+	\backmatter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% end of ornltm/ornl-template-example.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
