@@ -59,7 +59,6 @@ where $V_i$ is the volume of $i$\textsuperscript{th} volume.
 $V_i$ in 1D is simply the length along the domain.
 More on this is discussed in \cref{sec:boundary-conditions-and-implementation}, but for now, assume the domain has been discretized into equally-spaced, 1D volumes of length $\Delta x$.
 
-Herein lies a conundrum.
 To solve \cref{eq:finite-volume-solution}, both the functional values and the derivatives at the boundaries must be known.
 As discussed with \cref{eq:u-bar}, only the average value of the cell is known.
 Necessarily, the solution is assumed and often expected to be discontinuous on the volume boundaries.\footnote{A perfectly continuous case would imply a steady solution with no spatial variation.}

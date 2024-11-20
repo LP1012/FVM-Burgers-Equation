@@ -342,8 +342,8 @@
 
 
     \section{Conclusion and Next Steps}\label{sec:conclusion}
-    If the included code has been run with a viscosity value above $\nu=0.01$, then the solution will rapidly diverge at the interface of the two velocities given in the initial condition.
-    Although the cause of this stability is not immediately clear, next steps will likely include explorations of higher-resolution spatial and flux schemes.
+    If the included code has been run with a viscosity value above $\nu=0.015$, then the numerical solution will rapidly diverge from the analytical solution at the velocity discontinuity due to numerical instability.
+    Although the cause of this instability is not immediately clear, next steps will likely include explorations of higher-resolution spatial and flux schemes.
     A finer mesh may also greatly improve the quality of the solution, but this will be difficult to achieve without the aid of parallel computing to handle the large matrix-vector products.
     Finally, conversion from an explicit time-stepping method (RK4) to an implicit method may also improve stability properties.
     As shown in the literature~\autocite{cameronNOTESBURGERSEQUATION,salihBurgersEquation2016}, the discontinuity present in the solution is a known computational difficulty.

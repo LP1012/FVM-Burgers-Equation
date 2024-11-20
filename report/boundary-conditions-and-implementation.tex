@@ -25,8 +25,9 @@ If a system for $\mathbf{k}_1$ was built using the approximation in \cref{eq:bur
 Although \cref{eq:k1-initial-system} is a good start, two values, $u_{-1}$ and $u_{m}$, raise an issue because they are not within the domain of the problem (including their appearances in the flux values).
 Ultimately, it will be the boundary conditions of the system which will determine these values.
 
-Another issue with \cref{eq:k1-initial-system} is that it does not represent a system as we known linear algebra.
-This issue can be fixed by specifying a couple of vectors of values and separating the coefficients.
+Another issue with \cref{eq} is that it does not align with the conventional representation of a system of linear equations.
+To address this, we can reformulate the system by defining appropriate vectors for the variables and their corresponding coefficients.
+This separation allows the system to be expressed in a standard matrix-vector form, facilitating further analysis and computation.
 \begin{equation}
     \label{eq:k1-systems}
     \mathbf{k}_1 = \frac{\nu }{(\Delta x)^2}\begin{bmatrix}
