@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -e  # Stop the script on the first error
+
+# Change to the directory for the first case and run the script
+cd "/mnt/c/Users/lmi/Documents/lp-ornl-summer-2024/Code/Burgers' Equation/dirichlet_BC"
+python3 "BE_lax_wend_dirichlet_RK4.py"
+
+# Change to the directory for the second case and run the script
+cd "/mnt/c/Users/lmi/Documents/lp-ornl-summer-2024/Code/Burgers' Equation/neumann_BC/"
+python3 "BE_lax_wend_neumann_RK4.py"
+
+# Change to the directory for the third case and run the script
+cd "/mnt/c/Users/lmi/Documents/lp-ornl-summer-2024/Code/Burgers' Equation/periodic_BC/"
+python3 "BE_lax_wend_periodic_RK4.py"
