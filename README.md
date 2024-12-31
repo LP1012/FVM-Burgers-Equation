@@ -1,8 +1,9 @@
 # Burgers' Equation with Variable Boundary Conditions
 
 This repository houses the necessary code to produce the results outlined in the included report.
-Since great effort has been put towards outlining the steps taken to numerically solve this equation, the viewer is referred to the `report`
-directory.
+Since great effort has been put towards outlining the steps taken to numerically solve this equation, the viewer is referred to the `/report` directory, where the source `.tex` files can be processed using *LuaLaTeX*.
+
+To view the published report, see <https://www.osti.gov/biblio/2483416>.
 
 ## Code
 
